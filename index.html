@@ -11,9 +11,13 @@
 
 
 <input type="text" name="ValueToSet" id="ValueToSet"><br>
+
 <button onclick="setValue()">setValue</button>
 
 <button onclick="sendTransaction()">Send A transaction using Metamask</button>
+
+<button onclick="setValueMetamask()">Set Value with Metamask</button>
+
 
 
 
@@ -140,6 +144,8 @@ function setValue(){
   });
 }
 
+
+
 function getValue(){
   var getValuePromise = contract.getValue();
 
@@ -147,6 +153,28 @@ function getValue(){
     document.getElementById("CurrentValue").innerHTML = value;
   });
 }
+
+function setValueMetamask() {
+  Value1 = document.getElementById("ValueToSet").value;
+
+
+  provider.listAccounts().then(function(accounts) {
+     var signer = provider.getSigner(accounts[0]);
+     console.log(accounts[0]);
+     console.log(provider);
+     console.log(signer);
+     var contract = new ethers.Contract(address, abi, signer);
+
+     var sendPromise = contract.setValue(Value1);
+
+     sendPromise.then(function(transaction) {
+         console.log(transaction);
+     });
+
+
+     })
+}
+
 
 function estimateGas(){
   estimatePromise.then(function(gasCost) {
