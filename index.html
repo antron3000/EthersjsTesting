@@ -1,0 +1,168 @@
+<html>
+
+
+<body>
+
+<p>antoine is the greatest programmer wizard the world has ever seen</p>
+<p id="CurrentValue"> Placeholder</p>
+<button onclick="estimateGas()">EstimateGas</button>
+
+<button onclick="getValue()">Get Value</button>
+
+
+<input type="text" name="ValueToSet" id="ValueToSet"><br>
+<button onclick="setValue()">setValue</button>
+
+<button onclick="sendTransaction()">Send A transaction</button>
+
+
+
+
+<script charset="utf-8"
+        src="https://cdn.ethers.io/scripts/ethers-v3.min.js"
+        type="text/javascript">
+</script>
+
+<script>
+
+ // The interface from the Solidity compiler
+ var abi = [
+     {
+         "constant":true,
+         "inputs":[],
+         "name":"getValue",
+         "outputs":[{"name":"value","type":"string"}],
+         "payable":false,
+         "type":"function"
+     },
+     {
+         "constant":true,
+         "inputs":[],
+         "name":"getAuthorAndValue",
+         "outputs":[
+             {"name":"author","type":"address"},
+             {"name":"value","type":"string"}
+         ],
+         "payable":false,
+         "type":"function"
+     },
+     {
+         "constant":false,
+         "inputs":[{"name":"value","type":"string"}],
+         "name":"setValue",
+         "outputs":[],
+         "payable":false,
+         "type":"function"
+     },
+     {
+         "anonymous":false,
+         "inputs":[
+             {"indexed":false,"name":"oldValue","type":"string"},
+             {"indexed":false,"name":"newValue","type":"string"}
+         ],
+         "name":"valueChanged",
+         "type":"event"
+     }
+ ];
+
+ var address = '0x2BA27534A8814765795f1Db8AEa01d5dbe4112d9';
+ var providers = ethers.providers;
+ var utils = ethers.utils;
+ var network = providers.networks.ropsten;
+ provider = new providers.Web3Provider(web3.currentProvider,'ropsten');
+  var signer;
+
+var tx = {
+    nonce: 83,
+    gasLimit: 21000,
+    gasPrice: utils.bigNumberify("20000000000"),
+
+    to: "0x88a5C2d9919e46F883EB62F7b8Dd9d0CC45bc290",
+
+    value: utils.parseEther("0.001"),
+    data: "0x",
+
+    // This ensures the transaction cannot be replayed on different networks
+    chainId: 3
+};
+
+
+function sendTransaction() {
+  provider.listAccounts().then(function(accounts) {
+     signer = provider.getSigner(accounts[0]);
+     console.log(accounts[0]);
+     console.log(signer);
+     signer.sendTransaction(tx).then(function(value){
+       console.log(value);
+     });
+ });
+}
+
+
+
+
+ var contract = new ethers.Contract(address, abi, provider);
+
+ var callPromise = contract.getValue();
+
+
+ // These are identical to the above call
+ // var callPromise = contract.functions.getValue();
+ // var callPromise = contract['getValue()']();
+ // var callPromise = contract.functions['getValue()']();
+ // var callPromise = contract['getValue()'](); s
+
+
+
+
+ callPromise.then(function(value) {
+     console.log('Single Return Value:' + value);
+ });
+
+
+
+ // to call a non-constant function, the contract needs to be
+ // initialized with a wallet or a customSigner
+ var privateKey = '0x9418F6F57F3CCD837717711BEA2EA649821EA5F38637717AD902CC51537C9332';
+ var wallet = new ethers.Wallet(privateKey, provider);
+ var Value1;
+ var contract = new ethers.Contract(address, abi, wallet);
+
+ var estimatePromise = contract.estimate.setValue("Hello World");
+
+function setValue(){
+  Value1 = document.getElementById("ValueToSet").value;
+  console.log("Value: " + Value1)
+  var sendPromise = contract.setValue(Value1);
+
+  sendPromise.then(function(transaction) {
+      console.log(transaction);
+  });
+}
+
+function getValue(){
+  var getValuePromise = contract.getValue();
+
+  getValuePromise.then(function(value) {
+    document.getElementById("CurrentValue").innerHTML = value;
+  });
+}
+
+function estimateGas(){
+  estimatePromise.then(function(gasCost) {
+      // gasCost is returned as BigNumber
+      console.log('Estimated Gas Cost: ' + gasCost.toString());
+  });
+}
+
+contract.onvaluechanged = function(oldValue, newValue) {
+    console.log('oldValue: ' + oldValue);
+    console.log('newValue: ' + newValue);
+
+};
+
+</script>
+
+
+</body>
+</html>
